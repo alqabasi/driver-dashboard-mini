@@ -27,12 +27,11 @@ export const Users: React.FC = () => {
   const [addForm, setAddForm] = useState<CreateUserRequest>({ fullName: '', mobilePhone: '', password: '' });
 
   const fetchUsers = async () => {
-    // Only set global loading on initial load or explicit refresh
     if (users.length === 0) setLoading(true);
 
     try {
       const data = await api.admin.getUsers();
-      setUsers(data);
+      setUsers(data.users); // <-- use data.users, not data
     } catch (error) {
       addToast('Failed to fetch users', 'error');
     } finally {
@@ -40,11 +39,13 @@ export const Users: React.FC = () => {
     }
   };
 
+
   useEffect(() => {
     fetchUsers();
   }, []);
 
   const filteredUsers = useMemo(() => {
+    console.log(users)
     return users.filter(user =>
       user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.mobilePhone.includes(searchQuery)
