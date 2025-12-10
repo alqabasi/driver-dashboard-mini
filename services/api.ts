@@ -49,13 +49,22 @@ export const api = {
     },
   },
   admin: {
-    getUsers: async (): Promise<{ users: User[]; feedback?: string }> => {
-      const response = await apiClient.get<{ users: User[]; feedback?: string }>('/admin/users');
-      return response.data;
+    // Robustly handle users response whether it's { users: [] } or just []
+    getUsers: async (): Promise<User[]> => {
+      const response = await apiClient.get<any>('/admin/users');
+      
+      if (response.data && Array.isArray(response.data.users)) {
+        return response.data.users;
+      }
+      
+      if (Array.isArray(response.data)) {
+        return response.data;
+      }
+      
+      return [];
     },
     createUser: async (data: CreateUserRequest): Promise<User> => {
       const response = await apiClient.post<User>('/auth/register', data);
-      console.log(response, data)
       return response.data;
     },
     updateUser: async (id: string, data: Partial<User>): Promise<User> => {

@@ -27,29 +27,36 @@ export const Users: React.FC = () => {
   const [addForm, setAddForm] = useState<CreateUserRequest>({ fullName: '', mobilePhone: '', password: '' });
 
   const fetchUsers = async () => {
+    // Only show loading spinner on initial load to avoid flickering during updates
     if (users.length === 0) setLoading(true);
 
     try {
       const data = await api.admin.getUsers();
-      setUsers(data.users); // <-- use data.users, not data
+      // Ensure we always set an array, even if API returns null/undefined
+      setUsers(Array.isArray(data) ? data : []);
     } catch (error) {
       addToast('Failed to fetch users', 'error');
+      setUsers([]);
     } finally {
       setLoading(false);
     }
   };
-
 
   useEffect(() => {
     fetchUsers();
   }, []);
 
   const filteredUsers = useMemo(() => {
-    console.log(users)
-    return users.filter(user =>
-      user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.mobilePhone.includes(searchQuery)
-    );
+    // Defensive check: ensure users is an array before filtering
+    const userList = Array.isArray(users) ? users : [];
+    
+    return userList.filter(user => {
+      const name = user.fullName || '';
+      const phone = user.mobilePhone || '';
+      const query = searchQuery.toLowerCase();
+      
+      return name.toLowerCase().includes(query) || phone.includes(query);
+    });
   }, [users, searchQuery]);
 
   // Handlers
@@ -80,7 +87,6 @@ export const Users: React.FC = () => {
       await api.admin.createUser(addForm);
       addToast('User created successfully', 'success');
       setIsAddModalOpen(false);
-      // Refetch to ensure state consistency and avoid crashes from invalid response data
       await fetchUsers();
     } catch (error) {
       addToast('Failed to create user', 'error');
@@ -96,7 +102,6 @@ export const Users: React.FC = () => {
       await api.admin.updateUser(selectedUser.id, editForm);
       addToast('User updated successfully', 'success');
       setIsEditModalOpen(false);
-      // Refetch to ensure state consistency
       await fetchUsers();
     } catch (error) {
       addToast('Failed to update user', 'error');
@@ -112,7 +117,6 @@ export const Users: React.FC = () => {
       await api.admin.deleteUser(selectedUser.id);
       addToast('User deleted', 'success');
       setIsDeleteModalOpen(false);
-      // Refetch to ensure state consistency
       await fetchUsers();
     } catch (error) {
       addToast('Failed to delete user', 'error');
@@ -123,21 +127,19 @@ export const Users: React.FC = () => {
 
   const toggleStatus = async (user: User) => {
     try {
-      if (user.status === 'active') {
+      if (user.isActive == 1) {
         await api.admin.deactivateUser(user.id);
         addToast(`${user.fullName} deactivated`, 'info');
       } else {
         await api.admin.activateUser(user.id);
         addToast(`${user.fullName} activated`, 'success');
       }
-      // Refetch to ensure state consistency
       await fetchUsers();
     } catch (error) {
       addToast('Status update failed', 'error');
     }
   };
 
-  // Helper to force a reload with loading spinner
   const handleRefresh = () => {
     setLoading(true);
     fetchUsers();
@@ -170,7 +172,6 @@ export const Users: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        {/* Placeholder for future server-side filters */}
       </div>
 
       {/* Table */}
@@ -197,7 +198,7 @@ export const Users: React.FC = () => {
               ) : filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
-                    No users found matching "{searchQuery}"
+                    {users.length === 0 ? "No users found." : `No users found matching "${searchQuery}"`}
                   </td>
                 </tr>
               ) : (
@@ -206,20 +207,19 @@ export const Users: React.FC = () => {
                     <td className="px-6 py-4 font-medium text-slate-900">{user.fullName}</td>
                     <td className="px-6 py-4 text-slate-600 font-mono">{user.mobilePhone}</td>
                     <td className="px-6 py-4">
-
-                      <Badge variant={user.isActive === 1 ? 'success' : 'neutral'}>
-                        <span className={`w-1.5 h-1.5 rounded-full mr-2 ${user.status === 'active' ? 'bg-green-600' : 'bg-slate-500'}`} />
-                        {user.isActive === 1 ? 'Active' : 'Inactive'}
+                      <Badge variant={user.isActive == 1 ? 'success' : 'neutral'}>
+                        <span className={`w-1.5 h-1.5 rounded-full mr-2 ${user.isActive == 1 ? 'bg-green-600' : 'bg-slate-500'}`} />
+                        {user.isActive == 1 ? 'Active' : 'Inactive'}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => toggleStatus(user)}
-                          className={`p-2 rounded hover:bg-slate-100 transition-colors ${user.status === 'active' ? 'text-amber-600' : 'text-green-600'}`}
-                          title={user.status === 'active' ? 'Deactivate' : 'Activate'}
+                          className={`p-2 rounded hover:bg-slate-100 transition-colors ${user.isActive == 1 ? 'text-amber-600' : 'text-green-600'}`}
+                          title={user.isActive == 1 ? 'Deactivate' : 'Activate'}
                         >
-                          {user.status === 'active' ? <PowerOff className="w-4 h-4" /> : <Power className="w-4 h-4" />}
+                          {user.isActive == 1 ? <PowerOff className="w-4 h-4" /> : <Power className="w-4 h-4" />}
                         </button>
                         <button
                           onClick={() => handleEditClick(user)}
@@ -243,7 +243,6 @@ export const Users: React.FC = () => {
             </tbody>
           </table>
         </div>
-        {/* Pagination placeholder */}
         <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
           <span>Showing {filteredUsers.length} results</span>
           <div className="flex gap-2">
