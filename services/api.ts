@@ -49,8 +49,8 @@ export const api = {
     },
   },
   admin: {
-    getUsers: async (): Promise<User[]> => {
-      const response = await apiClient.get<User[]>('/admin/users');
+    getUsers: async (): Promise<{ users: User[]; feedback?: string }> => {
+      const response = await apiClient.get<{ users: User[]; feedback?: string }>('/admin/users');
       return response.data;
     },
     createUser: async (data: CreateUserRequest): Promise<User> => {

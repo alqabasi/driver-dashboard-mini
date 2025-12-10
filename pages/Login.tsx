@@ -70,10 +70,10 @@ export const Login: React.FC = () => {
             خاص بالادارة فقط، لا يسمح بالدخول للسائقين
           </p>
           <p>
-            Created with &hearts; by <code><abb>Mahros AL-Qabasy</abb></code>
+            Created with &hearts; by Mahros AL-Qabasy
           </p>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
