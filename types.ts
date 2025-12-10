@@ -2,13 +2,13 @@ export interface User {
   id: string;
   fullName: string;
   mobilePhone: string;
-  status: 'active' | 'inactive';
+  status?: 'active' | 'inactive';
+  isActive: number;
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface LoginRequest {
-  fullN
   mobilePhone: string;
   password: string;
 }
