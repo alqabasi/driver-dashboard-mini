@@ -3,8 +3,8 @@ import { LoginRequest, LoginResponse, User, CreateUserRequest } from '../types';
 
 // In a real app, this would be process.env.REACT_APP_API_URL
 // Defaulting to a placeholder for demonstration purposes.
-const API_URL = 'http://localhost:3000/api/v1';
-// const API_URL = 'https://driver-api-mini-production.up.railway.app/api/v1';
+// const API_URL = 'http://localhost:3000/api/v1';
+const API_URL = 'https://driver-api-mini-production.up.railway.app/api/v1';
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_URL,
