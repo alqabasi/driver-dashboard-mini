@@ -1,0 +1,5 @@
+{
+  "name": "AdminDash",
+  "description": "A professional, scalable admin dashboard for user management with authentication and CRUD operations.",
+  "requestFramePermissions": []
+}
